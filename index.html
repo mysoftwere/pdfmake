@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Viral PDF Generator - Mobile & GitHub Live</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- CDN Libraries for client-side PDF generation & ZIP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="logo-icon">📄</div>
+        <div>
+          <h1>PDF Link & Doc Maker</h1>
+          <p class="subtitle">মোবাইল ও পিসিতে সরাসরি ব্রাউজার থেকেই PDF তৈরি করুন</p>
+        </div>
+      </div>
+      <div class="badge-live">
+        <span class="pulse-dot"></span> GitHub Live
+      </div>
+    </header>
+
+    <!-- Main Card Form -->
+    <main class="form-wrapper">
+
+      <!-- 1. Titles & .txt Section (FIRST & MOST PROMINENT) -->
+      <section class="card highlight-card">
+        <div class="card-header">
+          <span class="step-num">1</span>
+          <h2>Title বা শিরোনাম নির্বাচন (.txt ফাইল আপলোড করুন)</h2>
+        </div>
+        
+        <div class="upload-zone upload-zone-primary" id="titleUploadZone">
+          <input type="file" id="titleFileInput" accept=".txt" class="file-hidden">
+          <div class="upload-content">
+            <span class="upload-icon">📂</span>
+            <p><strong>Title-এর .txt ফাইল আপলোড করতে এখানে চাপুন</strong></p>
+            <span class="upload-sub">মোবাইল বা পিসি থেকে আপনার titles.txt ফাইল বেছে নিন</span>
+            <div class="upload-btn-fake">📁 ফাইল সিলেক্ট করুন (.txt)</div>
+          </div>
+        </div>
+
+        <div id="titleUploadSuccess" class="upload-success-badge hidden">
+          ✅ ফাইল সফলভাবে আপলোড হয়েছে!
+        </div>
+
+        <div class="input-group mt-3">
+          <div class="label-row">
+            <label for="titlesTextarea">টাইটেল তালিকা (ফাইল থেকে আসা বা সরাসরি লেখা):</label>
+            <span class="counter-badge" id="titleCount">0 টি টাইটেল</span>
+          </div>
+          <textarea id="titlesTextarea" rows="4" placeholder="এখানে টাইটেলগুলো স্বয়ংক্রিয়ভাবে চলে আসবে অথবা আপনি নিজেও লিখতে পারেন..."></textarea>
+        </div>
+
+        <!-- Filename & Serial Number Formatting -->
+        <div class="filename-config-box mt-3">
+          <div class="grid-2-col">
+            <div class="input-group">
+              <label for="customPrefixInput">কাস্টম ফাইল নাম / Prefix (ঐচ্ছিক):</label>
+              <input type="text" id="customPrefixInput" placeholder="যেমন: viral-video-sexy (খালি রাখলে Title থেকে নেবে)">
+              <small class="hint">খালি রাখলে প্রতিটি Title অনুযায়ী স্বয়ংক্রিয় নাম হবে।</small>
+            </div>
+            <div class="input-group">
+              <label for="startSerialInput">সিরিয়াল শুরু নম্বর (Serial):</label>
+              <input type="number" id="startSerialInput" value="1" min="1" step="1">
+              <small class="hint">ধারাবাহিক নম্বর: 1 দিলে -1, -2, -3, -4, -5 হবে।</small>
+            </div>
+          </div>
+          <div class="filename-preview mt-2">
+            <span>ফাইল নামের নমুনা:</span>
+            <code id="filenamePreviewText">viral-video-sexy-1.pdf, viral-video-sexy-2.pdf...</code>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. Link Section -->
+      <section class="card">
+        <div class="card-header">
+          <span class="step-num">2</span>
+          <h2>Hyperlink URL (যে লিংকে ভিজিটর যাবে)</h2>
+        </div>
+        <div class="input-group">
+          <label for="targetUrl">কাস্টম রিডাইরেক্ট লিঙ্ক (ঐচ্ছিক):</label>
+          <input type="url" id="targetUrl" placeholder="নতুন কোনো লিংক দিতে চাইলে এখানে লিখুন (নইলে ডিফল্ট ফিক্সড লিংকে কাজ করবে)" value="">
+          <small class="hint">🔒 খালি রাখলে স্বয়ংক্রিয়ভাবে ফিক্সড সিক্রেট লিঙ্ক ব্যবহৃত হবে (দেখাবে না)।</small>
+        </div>
+      </section>
+
+      <!-- 3. Image Section -->
+      <section class="card">
+        <div class="card-header">
+          <span class="step-num">3</span>
+          <h2>Image বা ছবি নির্বাচন (ফিক্সড ডিফল্ট ছবি সেট করা আছে)</h2>
+        </div>
+        <p class="section-desc">ছবি সিলেক্ট না করলে স্বয়ংক্রিয়ভাবে আপনার ফিক্সড <strong>Screenshot 2026-09-09 092247.jpg</strong> ব্যানারটি ব্যবহার হবে।</p>
+
+        <div class="image-selector-grid mt-2">
+          <div class="upload-zone" id="imageUploadZone">
+            <input type="file" id="imageFileInput" accept="image/*" class="file-hidden">
+            <div class="upload-content">
+              <span class="upload-icon">🖼️</span>
+              <p><strong>নতুন কোনো ছবি দিতে চাইলে সিলেক্ট করুন</strong></p>
+              <span class="upload-sub">ছবি না দিলে পাশের ফিক্সড ছবিটিই ব্যবহৃত হবে</span>
+            </div>
+          </div>
+
+          <div class="image-preview-card" id="imagePreviewCard">
+            <img id="imagePreview" src="" alt="Selected Banner">
+            <div class="image-status-bar">
+              <span id="imageStatusText">ফিক্সড ব্যানার সক্রিয়</span>
+              <button type="button" class="btn-sm" id="btnResetImage">ফিক্সড ব্যানার</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. Date Selection -->
+      <section class="card">
+        <div class="card-header">
+          <span class="step-num">4</span>
+          <h2>তারিখ (Date) অপশন</h2>
+        </div>
+
+        <div class="radio-group">
+          <label class="radio-card active" id="labelDateTomorrow">
+            <input type="radio" name="dateChoice" value="tomorrow" checked>
+            <div class="radio-info">
+              <strong>পরের দিনের তারিখ (Tomorrow - রিকমেন্ডেড)</strong>
+              <span class="date-preview" id="tomorrowPreview">...</span>
+            </div>
+          </label>
+
+          <label class="radio-card" id="labelDateCustom">
+            <input type="radio" name="dateChoice" value="custom">
+            <div class="radio-info">
+              <strong>কাস্টম তারিখ সিলেক্ট করুন</strong>
+              <input type="date" id="customDateInput" class="custom-date-field" disabled>
+            </div>
+          </label>
+        </div>
+      </section>
+
+
+
+      <!-- Action Button & Progress -->
+      <div class="action-bar">
+        <button type="button" class="btn-primary" id="btnGenerate">
+          <span class="btn-icon">⚡</span> PDF তৈরি শুরু করুন
+        </button>
+
+        <div class="progress-box hidden" id="progressBox">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <div class="progress-status" id="progressText">প্রস্তুত করা হচ্ছে...</div>
+        </div>
+      </div>
+
+      <!-- Generated Results Section -->
+      <section class="card results-card hidden" id="resultsCard">
+        <div class="results-header">
+          <h2>🎉 তৈরি হওয়া PDF ফাইলসমূহ (<span id="successCount">0</span>)</h2>
+          <button type="button" class="btn-zip" id="btnDownloadZip">
+            📦 সব ফাইল এক ক্লিকে ZIP ডাউনলোড করুন
+          </button>
+        </div>
+
+        <div class="pdf-list" id="pdfList">
+          <!-- Items injected via JS -->
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>Standalone Client-Side PDF Maker • GitHub Pages Ready • 100% Mobile & PC Compatible</p>
+    </footer>
+  </div>
+
+  <script src="default_banner_base64.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
