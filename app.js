@@ -299,20 +299,40 @@ function initUploadHandlers() {
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      currentImageDataUrl = event.target.result;
-      isDefaultImage = false;
-      imagePreview.src = currentImageDataUrl;
-      imageStatusText.textContent = `কাস্টম ছবি: ${file.name.substring(0, 18)}...`;
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_WIDTH = 800; // Resize to max 800px width to keep PDF size small
+        let width = img.width;
+        let height = img.height;
 
-      // Deactivate all preset highlights
-      for (let i = 0; i < 3; i++) {
-        const item = document.getElementById(`presetItem${i}`);
-        if (item) {
-          item.classList.remove("active");
-          const badge = item.querySelector(".preset-badge");
-          if (badge) badge.classList.add("hidden");
+        if (width > MAX_WIDTH) {
+          height = Math.round((height * MAX_WIDTH) / width);
+          width = MAX_WIDTH;
         }
-      }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Compress as JPEG (quality 0.6) to guarantee < 500KB PDF
+        currentImageDataUrl = canvas.toDataURL("image/jpeg", 0.6);
+        isDefaultImage = false;
+        imagePreview.src = currentImageDataUrl;
+        imageStatusText.textContent = `কাস্টম ছবি: ${file.name.substring(0, 18)}...`;
+
+        // Deactivate all preset highlights
+        for (let i = 0; i < 3; i++) {
+          const item = document.getElementById(`presetItem${i}`);
+          if (item) {
+            item.classList.remove("active");
+            const badge = item.querySelector(".preset-badge");
+            if (badge) badge.classList.add("hidden");
+          }
+        }
+      };
+      img.src = event.target.result;
     };
     reader.readAsDataURL(file);
   });
@@ -425,7 +445,7 @@ async function generateSinglePdf(title, targetUrl, dateStr, templateText, keywor
 
   // Function to render Unicode / Arabic / Multilingual Title cleanly via Canvas
   function createTitleImage(text, targetWidthPt) {
-    const scale = 3; // 3x for ultra-sharp crisp text in PDF
+    const scale = 2; // 2x for sharp crisp text while keeping file size small
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
 
@@ -504,7 +524,7 @@ async function generateSinglePdf(title, targetUrl, dateStr, templateText, keywor
   // 2. Render Document Title (Supports Arabic, Unicode, Emojis without corruption)
   try {
     const titleImgObj = createTitleImage(title, contentWidth);
-    doc.addImage(titleImgObj.dataUrl, "PNG", margin, curY, titleImgObj.width, titleImgObj.height);
+    doc.addImage(titleImgObj.dataUrl, "PNG", margin, curY, titleImgObj.width, titleImgObj.height, undefined, "FAST");
     curY += titleImgObj.height + 12;
   } catch (e) {
     console.warn("Canvas title render fallback:", e);
@@ -533,7 +553,8 @@ async function generateSinglePdf(title, targetUrl, dateStr, templateText, keywor
   const imgX = margin + (contentWidth - imgWidth) / 2;
 
   try {
-    doc.addImage(currentImageDataUrl, "JPEG", imgX, curY, imgWidth, imgHeight);
+    // Add banner image with FAST compression to ensure < 500KB
+    doc.addImage(currentImageDataUrl, "JPEG", imgX, curY, imgWidth, imgHeight, undefined, "FAST");
     
     // ⭐ Add Clickable Web Link on the Image
     if (targetUrl) {
