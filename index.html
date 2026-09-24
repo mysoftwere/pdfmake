@@ -128,25 +128,31 @@
       <section class="card">
         <div class="card-header">
           <span class="step-num">4</span>
-          <h2>তারিখ (Date) অপশন</h2>
+          <h2>তারিখ (Date) PDF-এ যোগ করবেন?</h2>
+          <div class="toggle-yesno" id="dateToggleGroup">
+            <button type="button" class="toggle-btn toggle-yes active" id="btnDateYes">✅ Yes</button>
+            <button type="button" class="toggle-btn toggle-no" id="btnDateNo">❌ No</button>
+          </div>
         </div>
 
-        <div class="radio-group">
-          <label class="radio-card active" id="labelDateTomorrow">
-            <input type="radio" name="dateChoice" value="tomorrow" checked>
-            <div class="radio-info">
-              <strong>পরের দিনের তারিখ (Tomorrow - রিকমেন্ডেড)</strong>
-              <span class="date-preview" id="tomorrowPreview">...</span>
-            </div>
-          </label>
+        <div id="dateOptionsWrapper">
+          <div class="radio-group">
+            <label class="radio-card active" id="labelDateTomorrow">
+              <input type="radio" name="dateChoice" value="tomorrow" checked>
+              <div class="radio-info">
+                <strong>পরের দিনের তারিখ (Tomorrow - রিকমেন্ডেড)</strong>
+                <span class="date-preview" id="tomorrowPreview">...</span>
+              </div>
+            </label>
 
-          <label class="radio-card" id="labelDateCustom">
-            <input type="radio" name="dateChoice" value="custom">
-            <div class="radio-info">
-              <strong>কাস্টম তারিখ সিলেক্ট করুন</strong>
-              <input type="date" id="customDateInput" class="custom-date-field" disabled>
-            </div>
-          </label>
+            <label class="radio-card" id="labelDateCustom">
+              <input type="radio" name="dateChoice" value="custom">
+              <div class="radio-info">
+                <strong>কাস্টম তারিখ সিলেক্ট করুন</strong>
+                <input type="date" id="customDateInput" class="custom-date-field" disabled>
+              </div>
+            </label>
+          </div>
         </div>
       </section>
 

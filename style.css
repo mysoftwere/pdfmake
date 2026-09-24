@@ -121,8 +121,10 @@ body {
 .card-header {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 16px;
+  overflow: hidden;
 }
 
 .step-num {
@@ -131,6 +133,7 @@ body {
   justify-content: center;
   width: 28px;
   height: 28px;
+  min-width: 28px; /* shrink হবে না */
   background: var(--primary);
   color: #ffffff;
   font-size: 14px;
@@ -142,6 +145,11 @@ body {
   font-size: 16px;
   font-weight: 700;
   color: var(--text-main);
+  min-width: 0;        /* flex overflow fix */
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  flex: 1;             /* বাকি জায়গা নেবে, বাইরে যাবে না */
 }
 
 /* Inputs & Labels */
@@ -254,19 +262,27 @@ input:focus, textarea:focus {
   border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
-  background: #f8fafc;
+  background: #f1f5f9;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
 }
 
 .image-preview-card img {
-  width: 100%;
-  height: 120px;
-  object-fit: cover;
-  background: #e2e8f0;
+  width: auto;
+  max-width: 85%;
+  height: 90px;
+  max-height: 105px;
+  object-fit: contain;
+  display: block;
+  margin: 10px auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: #0f172a;
 }
 
 .image-status-bar {
+  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -627,6 +643,42 @@ details[open] .toggle-icon {
   color: var(--text-muted);
   margin-top: -8px;
   margin-bottom: 12px;
+}
+
+/* Yes/No Date Toggle */
+.toggle-yesno {
+  display: flex;
+  gap: 6px;
+  margin-left: auto; /* right-এ ঠেলে দেবে */
+  flex-shrink: 0;
+}
+
+.toggle-btn {
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 2px solid transparent;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.toggle-yes.active {
+  background: #d1fae5;
+  border-color: #10b981;
+  color: #065f46;
+}
+
+.toggle-no.active {
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #991b1b;
+}
+
+.toggle-btn:not(.active):hover {
+  background: #e2e8f0;
 }
 
 /* Footer */

@@ -89,6 +89,24 @@ function initDates() {
       }
     });
   });
+
+  // Yes/No Date Toggle
+  const btnDateYes = document.getElementById("btnDateYes");
+  const btnDateNo  = document.getElementById("btnDateNo");
+  const dateOptionsWrapper = document.getElementById("dateOptionsWrapper");
+
+  if (btnDateYes && btnDateNo && dateOptionsWrapper) {
+    btnDateYes.addEventListener("click", () => {
+      btnDateYes.classList.add("active");
+      btnDateNo.classList.remove("active");
+      dateOptionsWrapper.style.display = "";
+    });
+    btnDateNo.addEventListener("click", () => {
+      btnDateNo.classList.add("active");
+      btnDateYes.classList.remove("active");
+      dateOptionsWrapper.style.display = "none";
+    });
+  }
 }
 
 function getSelectedDateString() {
@@ -291,27 +309,113 @@ async function generateSinglePdf(title, targetUrl, dateStr, templateText, keywor
     textBeforeImage = processedBody.trim();
   }
 
-  let curY = margin + 20;
+  // Function to render Unicode / Arabic / Multilingual Title cleanly via Canvas
+  function createTitleImage(text, targetWidthPt) {
+    const scale = 3; // 3x for ultra-sharp crisp text in PDF
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
 
-  // 2. Render Document Title (22pt Bold, Centered)
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(22);
-  doc.setTextColor(17, 24, 39); // Dark grey #111827
+    const maxCanvasWidth = targetWidthPt * scale;
+    // Set font style
+    const fontSize = 20 * scale;
+    const lineHeight = 28 * scale;
+    ctx.font = `bold ${fontSize}px 'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif`;
 
-  const titleLines = doc.splitTextToSize(title, contentWidth);
-  doc.text(titleLines, pageWidth / 2, curY, { align: "center" });
-  curY += (titleLines.length * 28) + 14;
+    // Word wrap logic for canvas (handles both spaces and long words)
+    const words = text.split(" ");
+    const lines = [];
+    let currentLine = "";
 
-  // 3. Render Red Date (12pt Bold, Centered)
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
-  doc.setTextColor(217, 4, 41); // Red #d90429
-  doc.text(dateStr, pageWidth / 2, curY, { align: "center" });
-  curY += 28;
+    for (let i = 0; i < words.length; i++) {
+      let word = words[i];
+      let testLine = currentLine ? currentLine + " " + word : word;
+      let metrics = ctx.measureText(testLine);
+      
+      if (metrics.width > maxCanvasWidth) {
+        if (currentLine) {
+          lines.push(currentLine);
+          currentLine = "";
+        }
+        
+        // If single word is longer than max width, break it down
+        let wordMetrics = ctx.measureText(word);
+        if (wordMetrics.width > maxCanvasWidth) {
+          let chunk = "";
+          for (let c of word) {
+            if (ctx.measureText(chunk + c).width > maxCanvasWidth) {
+              lines.push(chunk);
+              chunk = c;
+            } else {
+              chunk += c;
+            }
+          }
+          currentLine = chunk;
+        } else {
+          currentLine = word;
+        }
+      } else {
+        currentLine = testLine;
+      }
+    }
+    if (currentLine) {
+      lines.push(currentLine);
+    }
 
-  // 4. Render Banner Image with Clickable Hyperlink (Enlarged to full content width)
-  const imgWidth = Math.min(520, contentWidth);
-  const imgHeight = (imgWidth / 16) * 9.5; // Slightly larger ratio
+    const padding = 10 * scale;
+    const totalHeight = (lines.length * lineHeight) + (padding * 2);
+    canvas.width = maxCanvasWidth;
+    canvas.height = totalHeight;
+
+    // Redraw text on sized canvas
+    ctx.fillStyle = "#111827"; // Dark grey
+    ctx.font = `bold ${fontSize}px 'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    lines.forEach((line, index) => {
+      const y = padding + (index * lineHeight) + (lineHeight / 2);
+      ctx.fillText(line, maxCanvasWidth / 2, y);
+    });
+
+    const renderedHeightPt = totalHeight / scale;
+    return {
+      dataUrl: canvas.toDataURL("image/png"),
+      width: targetWidthPt,
+      height: renderedHeightPt
+    };
+  }
+
+  let curY = margin + 15;
+
+  // 2. Render Document Title (Supports Arabic, Unicode, Emojis without corruption)
+  try {
+    const titleImgObj = createTitleImage(title, contentWidth);
+    doc.addImage(titleImgObj.dataUrl, "PNG", margin, curY, titleImgObj.width, titleImgObj.height);
+    curY += titleImgObj.height + 12;
+  } catch (e) {
+    console.warn("Canvas title render fallback:", e);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.setTextColor(17, 24, 39);
+    const titleLines = doc.splitTextToSize(title, contentWidth);
+    doc.text(titleLines, pageWidth / 2, curY, { align: "center" });
+    curY += (titleLines.length * 24) + 12;
+  }
+
+  // 3. Render Red Date (12pt Bold, Centered) — only if Yes selected
+  const btnDateNo = document.getElementById("btnDateNo");
+  const dateEnabled = !btnDateNo || !btnDateNo.classList.contains("active");
+  if (dateEnabled) {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(217, 4, 41); // Red #d90429
+    doc.text(dateStr, pageWidth / 2, curY, { align: "center" });
+    curY += 28;
+  }
+
+  // 4. Render Banner Image with Clickable Hyperlink (Optimized balanced size)
+  const imgWidth = Math.min(460, contentWidth);
+  const imgHeight = (imgWidth / 16) * 9; // Standard 16:9 ratio
   const imgX = margin + (contentWidth - imgWidth) / 2;
 
   try {
