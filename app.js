@@ -171,16 +171,82 @@ function createDefaultBannerDataUrl() {
   return canvas.toDataURL("image/jpeg", 0.9);
 }
 
+let currentPresetIndex = 0;
+
+function initPresetBanners() {
+  if (typeof PRESET_BANNERS !== "undefined" && PRESET_BANNERS.length > 0) {
+    PRESET_BANNERS.forEach((banner, idx) => {
+      const thumb = document.getElementById(`presetThumb${idx}`);
+      if (thumb) thumb.src = banner.dataUrl;
+
+      const item = document.getElementById(`presetItem${idx}`);
+      if (item) {
+        item.addEventListener("click", () => {
+          selectPresetBanner(idx);
+        });
+      }
+    });
+    setDefaultImage();
+  } else {
+    setDefaultImage();
+  }
+}
+
+function selectPresetBanner(idx) {
+  if (typeof PRESET_BANNERS === "undefined" || !PRESET_BANNERS[idx]) {
+    setDefaultImage();
+    return;
+  }
+  currentPresetIndex = idx;
+  currentImageDataUrl = PRESET_BANNERS[idx].dataUrl;
+  isDefaultImage = true;
+  imagePreview.src = currentImageDataUrl;
+  imageStatusText.textContent = `${PRESET_BANNERS[idx].label} সক্রিয়`;
+  imageFileInput.value = "";
+
+  const btnReset = document.getElementById("btnResetImage");
+  if (btnReset) btnReset.textContent = `ডিফল্ট ছবিতে রিসেট করুন`;
+
+  // Update active state in UI
+  for (let i = 0; i < 3; i++) {
+    const item = document.getElementById(`presetItem${i}`);
+    if (item) {
+      const badge = item.querySelector(".preset-badge");
+      if (i === idx) {
+        item.classList.add("active");
+        if (badge) badge.classList.remove("hidden");
+      } else {
+        item.classList.remove("active");
+        if (badge) badge.classList.add("hidden");
+      }
+    }
+  }
+}
+
 function setDefaultImage() {
   if (typeof FIXED_DEFAULT_BANNER_DATA_URL !== "undefined" && FIXED_DEFAULT_BANNER_DATA_URL) {
     currentImageDataUrl = FIXED_DEFAULT_BANNER_DATA_URL;
+    isDefaultImage = true;
+    imagePreview.src = currentImageDataUrl;
+    imageStatusText.textContent = "অরিজিনাল ব্যানার সক্রিয়";
+    imageFileInput.value = "";
+    
+    // Clear preset selection highlights
+    for (let i = 0; i < 3; i++) {
+      const item = document.getElementById(`presetItem${i}`);
+      if (item) {
+        item.classList.remove("active");
+        const badge = item.querySelector(".preset-badge");
+        if (badge) badge.classList.add("hidden");
+      }
+    }
   } else {
     currentImageDataUrl = createDefaultBannerDataUrl();
+    isDefaultImage = true;
+    imagePreview.src = currentImageDataUrl;
+    imageStatusText.textContent = "ডিফল্ট ব্যানার সক্রিয়";
+    imageFileInput.value = "";
   }
-  isDefaultImage = true;
-  imagePreview.src = currentImageDataUrl;
-  imageStatusText.textContent = "ফিক্সড ব্যানার সক্রিয় (Screenshot 2026-09-09 092247.jpg)";
-  imageFileInput.value = "";
 }
 
 // =============================================================================
@@ -237,20 +303,61 @@ function initUploadHandlers() {
       isDefaultImage = false;
       imagePreview.src = currentImageDataUrl;
       imageStatusText.textContent = `কাস্টম ছবি: ${file.name.substring(0, 18)}...`;
+
+      // Deactivate all preset highlights
+      for (let i = 0; i < 3; i++) {
+        const item = document.getElementById(`presetItem${i}`);
+        if (item) {
+          item.classList.remove("active");
+          const badge = item.querySelector(".preset-badge");
+          if (badge) badge.classList.add("hidden");
+        }
+      }
     };
     reader.readAsDataURL(file);
   });
 
-  btnResetImage.addEventListener("click", setDefaultImage);
+  const btnReset = document.getElementById("btnResetImage");
+  if (btnReset) {
+    btnReset.addEventListener("click", () => {
+      setDefaultImage();
+    });
+    btnReset.textContent = "ডিফল্ট ছবিতে রিসেট করুন";
+  }
 
-  // Filename & Serial Listeners
+  // Filename, Serial & Random Code Listeners
   if (customPrefixInput) customPrefixInput.addEventListener("input", updateFilenamePreview);
   if (startSerialInput) startSerialInput.addEventListener("input", updateFilenamePreview);
+
+  const btnRandomYes = document.getElementById("btnRandomYes");
+  const btnRandomNo = document.getElementById("btnRandomNo");
+
+  if (btnRandomYes && btnRandomNo) {
+    btnRandomYes.addEventListener("click", () => {
+      btnRandomYes.classList.add("active");
+      btnRandomNo.classList.remove("active");
+      updateFilenamePreview();
+    });
+    btnRandomNo.addEventListener("click", () => {
+      btnRandomNo.classList.add("active");
+      btnRandomYes.classList.remove("active");
+      updateFilenamePreview();
+    });
+  }
 }
 
 // =============================================================================
-//  FILENAME & SLUG FORMATTING (e.g. viral-video-sexy-1.pdf)
+//  FILENAME & SLUG FORMATTING (e.g. viral-video-sexy-1-x2xcd.pdf)
 // =============================================================================
+function generateRandomCode(length = 5) {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
 function formatTitleSlug(rawTitle) {
   if (!rawTitle) return "viral-video";
   let slug = rawTitle
@@ -269,7 +376,14 @@ function updateFilenamePreview() {
   const startNum = parseInt(startSerialInput ? startSerialInput.value : 1, 10) || 1;
   const firstTitle = titlesTextarea.value.split("\n").map(t => t.trim()).find(t => t.length > 0) || "viral video sexy";
   const base = prefix ? formatTitleSlug(prefix) : formatTitleSlug(firstTitle);
-  filenamePreviewText.textContent = `${base}-${startNum}.pdf, ${base}-${startNum + 1}.pdf, ${base}-${startNum + 2}.pdf...`;
+  const btnRandomNo = document.getElementById("btnRandomNo");
+  const useRandom = !btnRandomNo || !btnRandomNo.classList.contains("active");
+  
+  const r1 = useRandom ? `-${generateRandomCode(5)}` : "";
+  const r2 = useRandom ? `-${generateRandomCode(5)}` : "";
+  const r3 = useRandom ? `-${generateRandomCode(5)}` : "";
+
+  filenamePreviewText.textContent = `${base}-${startNum}${r1}.pdf, ${base}-${startNum + 1}${r2}.pdf, ${base}-${startNum + 2}${r3}.pdf...`;
 }
 
 // =============================================================================
@@ -441,7 +555,7 @@ async function generateSinglePdf(title, targetUrl, dateStr, templateText, keywor
     author: "PDF Generator"
   });
 
-  // 7. Generate output blob — filename = slug-serial (e.g. tamil-sex-video-7.pdf)
+  // 7. Generate output blob — filename = slug-serial-random (e.g. xxx-video-1-x2xcd.pdf)
   const pdfBlob = doc.output("blob");
   let fileBase = "";
   if (customPrefix && customPrefix.trim()) {
@@ -450,7 +564,10 @@ async function generateSinglePdf(title, targetUrl, dateStr, templateText, keywor
     const rawSlug = formatTitleSlug(title);
     fileBase = rawSlug.length > 35 ? rawSlug.substring(0, 35).replace(/-+$/, "") : rawSlug;
   }
-  const filename = `${fileBase || "viral-video"}-${serialIndex}.pdf`;
+  const btnRandomNo = document.getElementById("btnRandomNo");
+  const useRandom = !btnRandomNo || !btnRandomNo.classList.contains("active");
+  const randomToken = useRandom ? `-${generateRandomCode(6)}` : "";
+  const filename = `${fileBase || "viral-video"}-${serialIndex}${randomToken}.pdf`;
 
   return {
     filename,
@@ -574,7 +691,7 @@ async function downloadAllAsZip() {
 // =============================================================================
 document.addEventListener("DOMContentLoaded", () => {
   initDates();
-  setDefaultImage();
+  initPresetBanners();
   initUploadHandlers();
 
   // Automatically load titles from Titel/titel.txt if available

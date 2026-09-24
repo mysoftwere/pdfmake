@@ -67,18 +67,28 @@
           <div class="grid-2-col">
             <div class="input-group">
               <label for="customPrefixInput">কাস্টম ফাইল নাম / Prefix (ঐচ্ছিক):</label>
-              <input type="text" id="customPrefixInput" placeholder="যেমন: viral-video-sexy (খালি রাখলে Title থেকে নেবে)">
+              <input type="text" id="customPrefixInput" placeholder="যেমন: xxx-xxx-xxx-sex-video-indian-video">
               <small class="hint">খালি রাখলে প্রতিটি Title অনুযায়ী স্বয়ংক্রিয় নাম হবে।</small>
             </div>
             <div class="input-group">
               <label for="startSerialInput">সিরিয়াল শুরু নম্বর (Serial):</label>
               <input type="number" id="startSerialInput" value="1" min="1" step="1">
-              <small class="hint">ধারাবাহিক নম্বর: 1 দিলে -1, -2, -3, -4, -5 হবে।</small>
+              <small class="hint">ধারাবাহিক নম্বর: 1 দিলে -1, -2, -3 হবে।</small>
+            </div>
+          </div>
+          <div class="random-toggle-row mt-2">
+            <div class="random-toggle-label">
+              <strong>🎲 নামের শেষে ইউনিক র‍্যান্ডম কোড যোগ করবেন?</strong>
+              <small class="hint">(যেমন: -x2xcd, -emi66 যাতে লাইভে হাজারটা PDF হলেও নামের মিল না থাকে)</small>
+            </div>
+            <div class="toggle-yesno" id="randomToggleGroup">
+              <button type="button" class="toggle-btn toggle-yes active" id="btnRandomYes">✅ Yes</button>
+              <button type="button" class="toggle-btn toggle-no" id="btnRandomNo">❌ No</button>
             </div>
           </div>
           <div class="filename-preview mt-2">
             <span>ফাইল নামের নমুনা:</span>
-            <code id="filenamePreviewText">viral-video-sexy-1.pdf, viral-video-sexy-2.pdf...</code>
+            <code id="filenamePreviewText">xxx-video-1-x2xcd.pdf, xxx-video-2-emi66.pdf...</code>
           </div>
         </div>
       </section>
@@ -100,25 +110,44 @@
       <section class="card">
         <div class="card-header">
           <span class="step-num">3</span>
-          <h2>Image বা ছবি নির্বাচন (ফিক্সড ডিফল্ট ছবি সেট করা আছে)</h2>
+          <h2>Image বা ছবি নির্বাচন (৩টি ফিক্সড ব্যানার)</h2>
         </div>
-        <p class="section-desc">ছবি সিলেক্ট না করলে স্বয়ংক্রিয়ভাবে আপনার ফিক্সড <strong>Screenshot 2026-09-09 092247.jpg</strong> ব্যানারটি ব্যবহার হবে।</p>
+        <p class="section-desc">নিচের ৩টি ফিক্সড ব্যানারের যেকোনো একটি সিলেক্ট করুন অথবা নিজস্ব নতুন ছবি আপলোড করুন:</p>
 
-        <div class="image-selector-grid mt-2">
+        <!-- 3 Preset Banners Selection Grid -->
+        <div class="preset-banners-grid mt-2" id="presetBannersContainer">
+          <div class="preset-banner-item active" data-index="0" id="presetItem0">
+            <img src="" alt="Image 1" id="presetThumb0">
+            <span class="preset-label">1. Image 1</span>
+            <span class="preset-badge">সক্রিয়</span>
+          </div>
+          <div class="preset-banner-item" data-index="1" id="presetItem1">
+            <img src="" alt="Image 2" id="presetThumb1">
+            <span class="preset-label">2. Image 2</span>
+            <span class="preset-badge hidden">সক্রিয়</span>
+          </div>
+          <div class="preset-banner-item" data-index="2" id="presetItem2">
+            <img src="" alt="Image 3" id="presetThumb2">
+            <span class="preset-label">3. Image 3</span>
+            <span class="preset-badge hidden">সক্রিয়</span>
+          </div>
+        </div>
+
+        <div class="image-selector-grid mt-3">
           <div class="upload-zone" id="imageUploadZone">
             <input type="file" id="imageFileInput" accept="image/*" class="file-hidden">
             <div class="upload-content">
               <span class="upload-icon">🖼️</span>
-              <p><strong>নতুন কোনো ছবি দিতে চাইলে সিলেক্ট করুন</strong></p>
-              <span class="upload-sub">ছবি না দিলে পাশের ফিক্সড ছবিটিই ব্যবহৃত হবে</span>
+              <p><strong>নতুন কোনো কাস্টম ছবি দিতে চাইলে আপলোড করুন</strong></p>
+              <span class="upload-sub">মোবাইল বা পিসি থেকে ছবি বেছে নিন</span>
             </div>
           </div>
 
           <div class="image-preview-card" id="imagePreviewCard">
             <img id="imagePreview" src="" alt="Selected Banner">
             <div class="image-status-bar">
-              <span id="imageStatusText">ফিক্সড ব্যানার সক্রিয়</span>
-              <button type="button" class="btn-sm" id="btnResetImage">ফিক্সড ব্যানার</button>
+              <span id="imageStatusText">Image 1 সক্রিয়</span>
+              <button type="button" class="btn-sm" id="btnResetImage">Image 1 রিসেট</button>
             </div>
           </div>
         </div>
